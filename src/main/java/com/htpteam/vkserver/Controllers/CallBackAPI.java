@@ -120,12 +120,12 @@ JSONObject JSON = new JSONObject(JSON_response);
 
             try {
                 int count = users.getInt("" + from_id) + 1;
-                if (count >= 5) {
+                if (count >= 50) {
                     count = 0;
                        userslist.put("" + from_id, userslist.getInt("" + from_id) + 1);
 
                     sardine.put(url + peer_id + ".txt", userslist.toString().getBytes());
-                    SendMessage(peer_id,"Поздравим "+ returnDomainuser(from_id) + "с " + userslist.getInt(""+from_id) + "уровнем!");
+                    SendMessage(peer_id,"Поздравим "+ returnDomainuser(from_id) + " с " + userslist.getInt(""+from_id) + " уровнем!");
                 }
                 newbuff.put("" + from_id, count);
                 sardine.put(url + "score-" + peer_id + ".txt", newbuff.toString().getBytes());
@@ -165,7 +165,7 @@ return new JSONObject(value);
 
 
     public String returnDomainuser(long id) throws Exception {
-     return new JSONObject(new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/users.get?user_ids="+id+"&fields=domain&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine()).getJSONArray("response").getJSONObject(0).getString("domain");
+     return "@"+new JSONObject(new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/users.get?user_ids="+id+"&fields=domain&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine()).getJSONArray("response").getJSONObject(0).getString("domain");
 
     }
 }
