@@ -33,7 +33,7 @@ JSONObject JSON = new JSONObject(JSON_response);
         {
             if (JSON.getString("type").equals("confirmation"))
             {
-               return new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/groups.getCallbackConfirmationCode?group_id=174262647&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine();
+               return new JSONObject(new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/groups.getCallbackConfirmationCode?group_id=174262647&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine()).getJSONObject("response").getString("code");
             }
             else
             {
