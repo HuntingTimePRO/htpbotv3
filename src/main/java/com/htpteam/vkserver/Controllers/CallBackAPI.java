@@ -24,7 +24,8 @@ import java.util.ArrayList;
 
 public class CallBackAPI {
 
-
+    String url = "https://webdav.yandex.ru/WebDav/";
+    Sardine sardine = SardineFactory.begin("hunting.time@yandex.ru", "qzvmnviyhsqtmelo");
 
     @RequestMapping(value = "/api", method = RequestMethod.POST, consumes = "application/json")
     public String CallBack(@RequestBody String JSON_response) throws JSONException {
@@ -33,8 +34,17 @@ JSONObject JSON = new JSONObject(JSON_response);
         {
             if (JSON.getString("type").equals("confirmation"))
             {
-               return new JSONObject(new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/groups.getCallbackConfirmationCode?group_id=174262647&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine()).getJSONObject("response").getString("code");
+                String value = new BufferedReader(new InputStreamReader(sardine.get(url + "confirm.txt"), "UTF-8")).readLine();
+                if(new JSONObject(value).getString("isChecking").equals("true"))
+                {
+                    return  new JSONObject(value).getString("code");
+                }
+                else
+                {
+                    return new JSONObject(new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/groups.getCallbackConfirmationCode?group_id=174262647&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine()).getJSONObject("response").getString("code");
+                }
             }
+
             else
             {
                 JSONObject object = JSON.getJSONObject("object");
@@ -50,8 +60,7 @@ JSONObject JSON = new JSONObject(JSON_response);
 
     }
 
-    String url = "https://webdav.yandex.ru/WebDav/";
-    Sardine sardine = SardineFactory.begin("hunting.time@yandex.ru", "qzvmnviyhsqtmelo");
+
     public void _newMessage(long peer_id, String text) {
         try {
             String value = new BufferedReader(new InputStreamReader(sardine.get(url + "command-list.txt"), "UTF-8")).readLine();
