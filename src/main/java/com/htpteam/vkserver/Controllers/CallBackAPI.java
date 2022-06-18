@@ -49,17 +49,27 @@ JSONObject JSON = new JSONObject(JSON_response);
 
             else
             {
-                String buff;
-                JSONObject object = JSON.getJSONObject("object");
-               try {
-                   JSONArray fwd = object.getJSONArray("fwd_messages");
-                   if (fwd.length() > 1) {
-                       buff = "more 2";
-                   } else {
-                       buff = fwd.getJSONObject(0).getString("from_id");
-                   }
-               }catch (Exception ex){buff = "more 2";}
-               _newMessage(object.getLong("peer_id"), object.getLong("from_id"), object.getString("text"),buff);
+             new Thread(new Runnable() {
+                 @Override
+                 public void run() {
+
+try {
+    String buff;
+    JSONObject object = JSON.getJSONObject("object");
+    try {
+        JSONArray fwd = object.getJSONArray("fwd_messages");
+        if (fwd.length() > 1) {
+            buff = "more 2";
+        } else {
+            buff = fwd.getJSONObject(0).getString("from_id");
+        }
+    } catch (Exception ex) {
+        buff = "more 2";
+    }
+    _newMessage(object.getLong("peer_id"), object.getLong("from_id"), object.getString("text"), buff);
+}catch (Exception e){}
+                 }
+             }).start();
                 return "ok";
             }
 
@@ -71,6 +81,8 @@ JSONObject JSON = new JSONObject(JSON_response);
 
     }
 long buffer_peer_id;
+    int time;
+    JSONObject obj;
     long gulag_id;
     ArrayList<String> voted = new ArrayList<>();
 
@@ -101,6 +113,7 @@ long buffer_peer_id;
                         }else {
                             SendMessage(peer_id,"Трибунал активирован, пишем \"+\" в беседу за понижение уровня пользователя ");
                             gulag_id = Integer.parseInt(forward);
+                            buffer_peer_id = peer_id;
                             isReported = true;
                         }
                     }
@@ -133,33 +146,40 @@ try{
 
             if (isReported == true)
             {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run()
-                    {
-                    for(int i = 60; i > 0; i--)
-                    {
-                        try{Thread.sleep(1000);}catch (Exception ex){}
-                    }
-                    isReported = false;
-                    Ishighvotes(peer_id,voted.size(),gulag_id);
-                    voted.clear();
-                    SendMessage(peer_id,"Трибунал завершён.");
-                    }
-                }).start();
+
+                if(time == 0) {
+                    obj = usrs_list(peer_id);
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (int i = 60; i > 0; i--) {
+                                try {
+                                    Thread.sleep(1000);
+                                } catch (Exception ex) {
+                                }
+                            }
+                            isReported = false;
+                            Ishighvotes(peer_id, voted.size(), gulag_id);
+                            voted.clear();
+                          //  SendMessage(peer_id, "Трибунал завершён.");
+                            obj = null;
+                            time = 0;
+                        }
+                    }).start();
+                    time = 1;
+                }
                 if (buffer_peer_id == peer_id && text.equals("+"))
                 {
-                    for(int i = 0; i < voted.size(); i++)
-                    {
-                        if(from_id == Integer.parseInt(voted.get(i)))
+
+                        if(obj.getInt(""+from_id)==1)
                         {
-                            SendMessage(peer_id,returnDomainuser(from_id) + "вы уже проголосовали...");
+                            SendMessage(peer_id,returnDomainuser(from_id) + " вы уже проголосовали...");
                         }
-                        else if(from_id != Integer.parseInt(voted.get(i))&& i == voted.size()-1)
+                        else
                         {
-                            voted.add(from_id+"");
+                         obj.put(from_id+"",1);   voted.add(from_id+"");
                         }
-                    }
+
                 }
             }
 
@@ -179,6 +199,18 @@ try{
         }
     }
 
+    private JSONObject usrs_list(long peer_id)
+    {JSONObject buff = null;
+        try {
+            JSONObject responseUsers = new JSONObject(new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/messages.getConversationMembers?peer_id=" + peer_id + "&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine()).getJSONObject("response");
+            JSONArray arr = responseUsers.getJSONArray("items");
+             buff = new JSONObject();
+            for (int i = 0; i < responseUsers.getInt("count"); i++) {
+                buff.put(arr.getJSONObject(i).getString("member_id"), 0);
+            }
+        }catch (Exception e){}
+        return buff;
+    }
     public synchronized void messageScore(long peer_id,long from_id) throws Exception {
         try {
             String value = new BufferedReader(new InputStreamReader(sardine.get(url + "score-" + peer_id + ".txt"), "UTF-8")).readLine();
