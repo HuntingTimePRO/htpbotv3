@@ -24,6 +24,7 @@ import java.util.ArrayList;
 
 public class CallBackAPI {
 
+    private  boolean isReported = false;
     String url = "https://webdav.yandex.ru/WebDav/";
     Sardine sardine = SardineFactory.begin("hunting.time@yandex.ru", "qzvmnviyhsqtmelo");
 
@@ -48,8 +49,17 @@ JSONObject JSON = new JSONObject(JSON_response);
 
             else
             {
+                String buff;
                 JSONObject object = JSON.getJSONObject("object");
-               _newMessage(object.getLong("peer_id"), object.getLong("from_id"), object.getString("text"));
+               try {
+                   JSONArray fwd = object.getJSONArray("fwd_messages");
+                   if (fwd.length() > 1) {
+                       buff = "more 2";
+                   } else {
+                       buff = fwd.getJSONObject(0).getString("from_id");
+                   }
+               }catch (Exception ex){buff = "more 2";}
+               _newMessage(object.getLong("peer_id"), object.getLong("from_id"), object.getString("text"),buff);
                 return "ok";
             }
 
@@ -60,16 +70,41 @@ JSONObject JSON = new JSONObject(JSON_response);
         }
 
     }
+long buffer_peer_id;
+    long gulag_id;
+    ArrayList<String> voted = new ArrayList<>();
 
-
-    public void _newMessage(long peer_id,long from_id, String text) {
+    public void _newMessage(long peer_id,long from_id, String text,String forward) {
         try {
             String value = new BufferedReader(new InputStreamReader(sardine.get(url + "command-list.txt"), "UTF-8")).readLine();
             String[] array;
+
+
             if(text.substring(0,1).equals("!")) {
+
                 array = text.split("_");
                 for (int i = 0; i < array.length; i++) {
                     System.out.println(array[i]);
+                }
+
+                if(array[0].equals("!tribunal"))
+                {
+                    if(forward.equals("more 2"))
+                    {
+                        SendMessage(peer_id,"Команду tribunal надо писать в ответ на сообщение человека");
+                    }
+                    else
+                    {
+                        if(isReported == true)
+                        {
+                            SendMessage(peer_id,"Трибунал уже активирован, дождитесь пока закончится.");
+                        }else {
+                            SendMessage(peer_id,"Трибунал активирован, пишем \"+\" в беседу за понижение уровня пользователя ");
+                            gulag_id = Integer.parseInt(forward);
+                            isReported = true;
+                        }
+                    }
+
                 }
 
                 try {
@@ -88,13 +123,46 @@ JSONObject JSON = new JSONObject(JSON_response);
 
 
 
-
+try{
                     JSONObject object = new JSONObject(value);
-                    SendMessage(peer_id, object.getString(text));
+                    SendMessage(peer_id, object.getString(text));}catch (Exception e){}
 
             }
 
-            messageScore(peer_id,from_id);
+              messageScore(peer_id,from_id);
+
+            if (isReported == true)
+            {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run()
+                    {
+                    for(int i = 60; i > 0; i--)
+                    {
+                        try{Thread.sleep(1000);}catch (Exception ex){}
+                    }
+                    isReported = false;
+                    Ishighvotes(peer_id,voted.size(),gulag_id);
+                    voted.clear();
+                    SendMessage(peer_id,"Трибунал завершён.");
+                    }
+                }).start();
+                if (buffer_peer_id == peer_id && text.equals("+"))
+                {
+                    for(int i = 0; i < voted.size(); i++)
+                    {
+                        if(from_id == Integer.parseInt(voted.get(i)))
+                        {
+                            SendMessage(peer_id,returnDomainuser(from_id) + "вы уже проголосовали...");
+                        }
+                        else if(from_id != Integer.parseInt(voted.get(i))&& i == voted.size()-1)
+                        {
+                            voted.add(from_id+"");
+                        }
+                    }
+                }
+            }
+
         }
         catch (Exception e)
         {
@@ -164,8 +232,76 @@ return new JSONObject(value);
     }
 
 
+
     public String returnDomainuser(long id) throws Exception {
      return "@"+new JSONObject(new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/users.get?user_ids="+id+"&fields=domain&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine()).getJSONArray("response").getJSONObject(0).getString("domain");
 
     }
+
+    public static ArrayList<String> keylist = new ArrayList<String>();
+    public void Ishighvotes(long peer_id,int voted,long from_id)
+    {
+        try
+        {
+
+            String value = new BufferedReader(new InputStreamReader(sardine.get(url + peer_id + ".txt"), "UTF-8")).readLine();
+            try{myfunction(new JSONObject(value));}catch(Exception ex){}
+            int count_users = keylist.size();
+            int minvotes = keylist.size() / 2;
+            double percent = voted/count_users*100;
+            if(count_users >= minvotes)
+            {
+                SendMessage(peer_id,"Проголосовало "+percent + "%, уровень "+ returnDomainuser(from_id) + " понижен на 1.");
+                keylist.clear();
+            }
+            else
+            {
+                SendMessage(peer_id,"В голосовании приняло слишком мало человек: "+percent);
+                keylist.clear();
+            }
+
+
+        }
+        catch(Exception e)
+        {
+System.out.println(e);
+if(e.toString().equals("java.lang.ArithmeticException: / by zero"))
+{
+    SendMessage(peer_id,"В голосовании никто не принял участие.");
+}
+        }
+    }
+
+
+
+
+    public static void myfunction(JSONObject x) throws JSONException
+    {
+        JSONArray keys =  x.names();
+        for(int i=0;i<keys.length();i++)
+        {
+            String current_key = keys.get(i).toString();
+            if( x.get(current_key).getClass().getName().equals("org.json.JSONObject"))
+            {
+                keylist.add(current_key);
+                myfunction((JSONObject) x.get(current_key));
+            }
+            else if( x.get(current_key).getClass().getName().equals("org.json.JSONArray"))
+            {
+                for(int j=0;j<((JSONArray) x.get(current_key)).length();j++)
+                {
+                    if(((JSONArray) x.get(current_key)).get(j).getClass().getName().equals("org.json.JSONObject"))
+                    {
+                        keylist.add(current_key);
+                        myfunction((JSONObject)((JSONArray) x.get(current_key)).get(j));
+                    }
+                }
+            }
+            else
+            {
+                keylist.add(current_key);
+            }
+        }
+    }
+
 }
