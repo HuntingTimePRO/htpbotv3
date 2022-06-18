@@ -84,8 +84,8 @@ long buffer_peer_id;
     int time;
     JSONObject obj;
     long gulag_id;
-    ArrayList<String> voted = new ArrayList<>();
 
+public int voted;
     public void _newMessage(long peer_id,long from_id, String text,String forward) {
         try {
             String value = new BufferedReader(new InputStreamReader(sardine.get(url + "command-list.txt"), "UTF-8")).readLine();
@@ -159,8 +159,8 @@ try{
                                 }
                             }
                             isReported = false;
-                            Ishighvotes(peer_id, voted.size(), gulag_id);
-                            voted.clear();
+                            Ishighvotes(peer_id,voted , gulag_id);
+                            voted = 0;
                           //  SendMessage(peer_id, "Трибунал завершён.");
                             obj = null;
                             time = 0;
@@ -177,7 +177,7 @@ try{
                         }
                         else
                         {
-                         obj.put(from_id+"",1);   voted.add(from_id+"");
+                         obj.put(from_id+"",1);   voted++;
                         }
 
                 }
