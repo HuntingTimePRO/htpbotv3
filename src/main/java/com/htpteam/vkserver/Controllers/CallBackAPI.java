@@ -287,7 +287,7 @@ return new JSONObject(value);
 
             int count_users = responseUsers.getInt("count");
             double minvotes = 1.0*voted / count_users;
-            double percent = minvotes * 100;
+            int percent = (int) (minvotes * 100);
             if(percent >= 30)
             {
                 SendMessage(peer_id,"Проголосовало "+percent + "%, уровень "+ returnDomainuser(from_id) + " понижен.");
@@ -295,7 +295,7 @@ return new JSONObject(value);
             }
             else
             {
-                SendMessage(peer_id,"В голосовании приняло слишком мало человек: "+percent);
+                SendMessage(peer_id,"В голосовании приняло слишком мало человек: "+percent+"%");
                 keylist.clear();
             }
 
