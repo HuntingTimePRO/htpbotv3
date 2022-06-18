@@ -277,13 +277,20 @@ return new JSONObject(value);
         {
 
             String value = new BufferedReader(new InputStreamReader(sardine.get(url + peer_id + ".txt"), "UTF-8")).readLine();
-            try{myfunction(new JSONObject(value));}catch(Exception ex){}
-            int count_users = keylist.size();
+            JSONObject buff = null;
+
+                JSONObject responseUsers = new JSONObject(new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/messages.getConversationMembers?peer_id=" + peer_id + "&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine()).getJSONObject("response");
+                JSONArray arr = responseUsers.getJSONArray("items");
+
+
+
+
+            int count_users = responseUsers.getInt("count");
             int minvotes = keylist.size() / 2;
             double percent = voted/count_users*100;
-            if(count_users >= minvotes)
+            if(percent >= 30)
             {
-                SendMessage(peer_id,"Проголосовало "+percent + "%, уровень "+ returnDomainuser(from_id) + " понижен на 1.");
+                SendMessage(peer_id,"Проголосовало "+percent + "%, уровень "+ returnDomainuser(from_id) + " понижен.");
                 keylist.clear();
             }
             else
