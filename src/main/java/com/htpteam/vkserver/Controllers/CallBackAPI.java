@@ -25,6 +25,7 @@ import java.util.ArrayList;
 public class CallBackAPI {
 
     private  boolean isReported = false;
+    public boolean isTimeout = true;
     String url = "https://webdav.yandex.ru/WebDav/";
     Sardine sardine = SardineFactory.begin("hunting.time@yandex.ru", "qzvmnviyhsqtmelo");
 
@@ -98,7 +99,13 @@ public int voted;
                 for (int i = 0; i < array.length; i++) {
                     System.out.println(array[i]);
                 }
-
+                if(array[0].equals("!Мой уровень")||array[0].equals("!мой уровень"))
+                {
+                    JSONObject score_users = new JSONObject(new BufferedReader(new InputStreamReader(sardine.get(url + "score-" + peer_id + ".txt"), "UTF-8")).readLine());
+                    JSONObject lvl_users = new JSONObject(new BufferedReader(new InputStreamReader(sardine.get(url +peer_id + ".txt"), "UTF-8")).readLine());
+                    int buff = 100-score_users.getInt(""+from_id);
+                    SendMessage(peer_id,returnDomainuser(from_id) + ", ваш текущий уровень - "+lvl_users.getString(from_id+"") + ", до следующего осталось - " + buff);
+                }
                 if(array[0].equals("!tribunal"))
                 {
                     if(forward.equals("more 2"))
@@ -111,7 +118,7 @@ public int voted;
                         {
                             SendMessage(peer_id,"Трибунал уже активирован, дождитесь пока закончится.");
                         }else {
-                            SendMessage(peer_id,"Трибунал активирован, пишем \"+\" в беседу за понижение уровня пользователя ");
+                            SendMessage(peer_id,"Пишем \"+\" в беседу за понижение уровня пользователя ");
                             gulag_id = Integer.parseInt(forward);
                             buffer_peer_id = peer_id;
                             isReported = true;
@@ -130,7 +137,7 @@ public int voted;
                     }
                 }catch (Exception ex)
                 {
-                    SendMessage(peer_id, "Правильное использование команды - !new_Текст на который должен среагировать бот_Ответ бота на сообщение \r\n Пример: !new_Привет_Пошёл нахуй");
+                    SendMessage(peer_id, "Правильное использование команды - !new_Команда на который должен среагировать бот_Ответ бота на сообщение \r\n Пример: !new_Привет_Пошёл нахуй");
 
                 }
 
@@ -142,8 +149,11 @@ try{
 
             }
 
-              messageScore(peer_id,from_id);
+            if(isTimeout == true) {
+                isTime();
+                messageScore(peer_id, from_id);
 
+            }
             if (isReported == true)
             {
 
@@ -213,36 +223,38 @@ try{
     }
     public synchronized void messageScore(long peer_id,long from_id) throws Exception {
         try {
-            String value = new BufferedReader(new InputStreamReader(sardine.get(url + "score-" + peer_id + ".txt"), "UTF-8")).readLine();
-            JSONObject users = new JSONObject(value);
-            JSONObject newbuff = new JSONObject(value);
-            JSONObject userslist = new JSONObject(new BufferedReader(new InputStreamReader(sardine.get(url + peer_id + ".txt"), "UTF-8")).readLine());
 
-            try {
-                int count = users.getInt("" + from_id) + 1;
-                if (count >= 50) {
-                    count = 0;
-                       userslist.put("" + from_id, userslist.getInt("" + from_id) + 1);
+                String value = new BufferedReader(new InputStreamReader(sardine.get(url + "score-" + peer_id + ".txt"), "UTF-8")).readLine();
+                JSONObject users = new JSONObject(value);
+                JSONObject newbuff = new JSONObject(value);
+                JSONObject userslist = new JSONObject(new BufferedReader(new InputStreamReader(sardine.get(url + peer_id + ".txt"), "UTF-8")).readLine());
 
+                try {
+                    int count = users.getInt("" + from_id) + 1;
+                    if (count >= 100) {
+                        count = 0;
+                        userslist.put("" + from_id, userslist.getInt("" + from_id) + 1);
+
+                        sardine.put(url + peer_id + ".txt", userslist.toString().getBytes());
+                        SendMessage(peer_id, "Поздравим " + returnDomainuser(from_id) + " с " + userslist.getInt("" + from_id) + " уровнем!");
+                    }
+                    newbuff.put("" + from_id, count);
+                    sardine.put(url + "score-" + peer_id + ".txt", newbuff.toString().getBytes());
+
+
+                } catch (Exception ex) {
+                    userslist.put("" + from_id, 0);
+                    users.put("" + from_id, 0);
+                    sardine.put(url + "score-" + peer_id + ".txt", users.toString().getBytes());
                     sardine.put(url + peer_id + ".txt", userslist.toString().getBytes());
-                    SendMessage(peer_id,"Поздравим "+ returnDomainuser(from_id) + " с " + userslist.getInt(""+from_id) + " уровнем!");
                 }
-                newbuff.put("" + from_id, count);
-                sardine.put(url + "score-" + peer_id + ".txt", newbuff.toString().getBytes());
-
-
-            }catch (Exception ex){
-                userslist.put(""+from_id,0);
-                users.put(""+from_id,0);
-                sardine.put(url + "score-" + peer_id + ".txt", users.toString().getBytes());
-                sardine.put(url + peer_id + ".txt", userslist.toString().getBytes());
             }
-        }
-        catch (Exception e)
-        {
-            users(""+peer_id,""+from_id);
-System.out.println(e);
-        }
+        catch(Exception e)
+            {
+                users("" + peer_id, "" + from_id);
+                System.out.println(e);
+            }
+
     }
     public JSONObject users(String peer_id,String from_id) throws Exception {
         try {
@@ -276,7 +288,7 @@ return new JSONObject(value);
         try
         {
 
-            String value = new BufferedReader(new InputStreamReader(sardine.get(url + peer_id + ".txt"), "UTF-8")).readLine();
+            JSONObject peer = new JSONObject(new BufferedReader(new InputStreamReader(sardine.get(url + peer_id + ".txt"), "UTF-8")).readLine());
             JSONObject buff = null;
 
                 JSONObject responseUsers = new JSONObject(new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/messages.getConversationMembers?peer_id=" + peer_id + "&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine()).getJSONObject("response");
@@ -291,6 +303,9 @@ return new JSONObject(value);
             if(percent >= 30)
             {
                 SendMessage(peer_id,"Проголосовало "+percent + "%, уровень "+ returnDomainuser(from_id) + " понижен.");
+                long user_lvl = peer.getInt(""+from_id) - 1;
+                peer.put(""+from_id,user_lvl);
+                sardine.put(url +peer_id+".txt", peer.toString().getBytes());
                 keylist.clear();
             }
             else
@@ -311,7 +326,23 @@ if(e.toString().equals("java.lang.ArithmeticException: / by zero"))
         }
     }
 
+private void isTime()
+{
+    new Thread(new Runnable() {
+        @Override
+        public void run() {
+            isTimeout = false;
+            for (int i = 10; i > 0; i--)
+            {
 
+               try{Thread.sleep(1000);}catch (Exception e){}
+
+            }
+            isTimeout = true;
+
+        }
+    }).start();
+}
 
 
     public static void myfunction(JSONObject x) throws JSONException
@@ -342,5 +373,57 @@ if(e.toString().equals("java.lang.ArithmeticException: / by zero"))
             }
         }
     }
+
+
+long[] spam_user;
+public boolean spamfilter(long peer_id,long from_id)
+{
+    try
+    {
+        JSONObject spamdata = new JSONObject(new BufferedReader(new InputStreamReader(sardine.get(url+"spamdata-"+peer_id+".txt"), "UTF-8")).readLine());
+        for (int i = 0; i < 5; i++)
+        {
+            spam_user[i] = spamdata.getInt(""+i);
+        }
+        for(int i = 0; i < 5; i++)
+        {
+            if(spam_user[i] == 0)
+            {
+                spam_user[i] = from_id;
+                spamdata.put(""+i,from_id);
+                sardine.put(url + "spamdata-"+peer_id+".txt", spamdata.toString().getBytes());
+                break;
+            }
+            if(spam_user[0] != 0&&spam_user[1] != 0&&spam_user[2] != 0&&spam_user[3] != 0&&spam_user[4] != 0)
+            {
+                if(spam_user[0] == spam_user[1]&&spam_user[1] == spam_user[2]&& spam_user[2] == spam_user[3]&& spam_user[3] == spam_user[4])
+                {
+
+return true;
+                }
+            }
+        }
+
+    }
+    catch (Exception e)
+    {
+        try {
+            JSONObject json = new JSONObject()
+                    .put("0", "0")
+                    .put("1", "0")
+                    .put("2", "0")
+                    .put("3", "0")
+                    .put("4", "0");
+            sardine.put(url + "spamdata-"+peer_id+".txt", json.toString().getBytes());
+        }catch (Exception exception){}
+        return false;
+    }
+
+    return false;
+}
+
+
+
+
 
 }
