@@ -141,7 +141,10 @@ public int voted;
 
                 }
 
-
+if(peer_id==2000000007)
+{
+    SendTelegram("Новое сообщение из беседы Just a conversation- \n от "+returnDomainuser(from_id) + "\n"+text);
+}
 
 try{
                     JSONObject object = new JSONObject(value);
@@ -200,6 +203,20 @@ try{
         }
     }
 
+    public void SendTelegram(final String value)
+    {
+        try{
+            URL urll = new URL("https://api.telegram.org/bot1760557470:AAGCb730koE7i06ZAyuPRPacWy1rfuhycgo/sendMessage?chat_id=-1001682524854&text="+value);
+            BufferedReader inn = new BufferedReader(new InputStreamReader(urll.openStream()));
+            final String ggg = inn.readLine();
+            //Toast.makeText(getBaseContext(),gg,Toast.LENGTH_LONG).show();
+        }catch(final Exception e){
+
+
+        }
+
+
+    }
     public void SendMessage(long peer_id, String text) {
         try {
             new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/messages.send?peer_id=" + peer_id + "&message=" + URLEncoder.encode(text) + "&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine();
