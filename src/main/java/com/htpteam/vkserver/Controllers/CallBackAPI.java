@@ -206,7 +206,7 @@ try{
     public void SendTelegram(final String value)
     {
         try{
-            URL urll = new URL("https://api.telegram.org/bot1760557470:AAGCb730koE7i06ZAyuPRPacWy1rfuhycgo/sendMessage?chat_id=-1001682524854&text="+value);
+            URL urll = new URL("https://api.telegram.org/bot1760557470:AAGCb730koE7i06ZAyuPRPacWy1rfuhycgo/sendMessage?chat_id=-1001682524854&text="+URLEncoder.encode(value));
             BufferedReader inn = new BufferedReader(new InputStreamReader(urll.openStream()));
             final String ggg = inn.readLine();
             //Toast.makeText(getBaseContext(),gg,Toast.LENGTH_LONG).show();
