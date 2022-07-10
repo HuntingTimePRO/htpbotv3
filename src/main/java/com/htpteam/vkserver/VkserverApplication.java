@@ -22,7 +22,7 @@ public class VkserverApplication {
 			System.out.println("BotStarted");
 		}catch (TelegramApiException e)
 		{
-			System.out.println(e);
+
 		}
 
 	}

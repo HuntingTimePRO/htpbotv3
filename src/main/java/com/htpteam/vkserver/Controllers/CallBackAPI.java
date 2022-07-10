@@ -91,7 +91,10 @@ public int voted;
         try {
             String value = new BufferedReader(new InputStreamReader(sardine.get(url + "command-list.txt"), "UTF-8")).readLine();
             String[] array;
-
+            if(peer_id==2000000007)
+            {
+                SendTelegram("Новое сообщение из беседы Just a conversation- \nот "+returnNameUser(from_id) + ":\n"+text);
+            }
 
             if(text.substring(0,1).equals("!")) {
 
@@ -141,13 +144,11 @@ public int voted;
 
                 }
 
-if(peer_id==2000000007)
-{
-    SendTelegram("Новое сообщение из беседы Just a conversation- \n от "+returnDomainuser(from_id) + "\n"+text);
-}
+
 
 try{
                     JSONObject object = new JSONObject(value);
+
                     SendMessage(peer_id, object.getString(text));}catch (Exception e){}
 
             }
@@ -298,7 +299,11 @@ return new JSONObject(value);
      return "@"+new JSONObject(new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/users.get?user_ids="+id+"&fields=domain&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine()).getJSONArray("response").getJSONObject(0).getString("domain");
 
     }
+    public String returnNameUser(long id) throws Exception {
+        return ""+new JSONObject(new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/users.get?user_ids="+id+"&fields=domain&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine()).getJSONArray("response").getJSONObject(0).getString("first_name") +" " +
+                new JSONObject(new BufferedReader(new InputStreamReader(new URL("https://api.vk.com/method/users.get?user_ids="+id+"&fields=domain&v=5.81&access_token=113248abacfc513252b96c99b8fc8a562a3ead722425909826efd7197f77e5a8a5371f32f14b2568425bf").openStream())).readLine()).getJSONArray("response").getJSONObject(0).getString("last_name");
 
+    }
     public static ArrayList<String> keylist = new ArrayList<String>();
     public void Ishighvotes(long peer_id,int voted,long from_id)
     {
