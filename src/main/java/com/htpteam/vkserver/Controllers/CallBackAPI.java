@@ -27,7 +27,7 @@ public class CallBackAPI {
     private  boolean isReported = false;
     public boolean isTimeout = true;
     String url = "https://webdav.yandex.ru/WebDav/";
-    Sardine sardine = SardineFactory.begin("hunting.time@yandex.ru", "qzvmnviyhsqtmelo");
+    Sardine sardine = SardineFactory.begin("mail", "password");
 
     @RequestMapping(value = "/api", method = RequestMethod.POST, consumes = "application/json")
     public String CallBack(@RequestBody String JSON_response) throws JSONException {
